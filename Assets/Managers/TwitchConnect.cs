@@ -17,6 +17,7 @@ public class TwitchConnect : MonoBehaviour
     string OAuth = "oauth:36363pesiy08cudclwdanlmp3pvgct";
     string Channel = "Dracxvil";
 
+    float PingCounter = 0;
     private void ConnectToTwitch()
     {
         Twitch = new TcpClient(URL, PORT);
@@ -36,11 +37,40 @@ public class TwitchConnect : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        PingCounter += Time.deltaTime;
+        if (PingCounter > 60)
+        {
+            Writer.WriteLine("PING " + URL);
+            Writer.Flush();
+        }
+
+        if (!Twitch.Connected)
+        {
+            ConnectToTwitch();
+        }
+
         if (Twitch.Available > 0)
         {
             string message = Reader.ReadLine();
+            //Debug.Log(message);
 
-            print(message);
+            if (message.Contains("PRIVMSG"))
+            {
+                string[] split = message.Split('!');
+                string user = split[0].Substring(1);
+
+                int msgIndex = message.IndexOf("PRIVMSG");
+                string chatMessage = message.Substring(message.IndexOf(':', msgIndex) + 1);
+
+                Debug.Log($"{user}: {chatMessage}");
+            }
+
+            if (message.StartsWith("PING"))
+            {
+                Writer.WriteLine("PONG: tmi.twitch.tv");
+                Writer.Flush();
+            }
+            
         }
     }
 }
