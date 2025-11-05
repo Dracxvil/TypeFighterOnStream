@@ -50,17 +50,21 @@ public class TypingManager : MonoBehaviour
         if (string.IsNullOrEmpty(typedWord))
             return;
 
-        var enemies = GameManager.instance.activeEnemies ;
+        var enemies = GameManager.instance.activeEnemies;
         var e = GetClosestEnemy(typedWord, enemies);
+
+        if (e == null)
+        {
+            inputField.text = "";
+            return;
+        }
 
         GameManager.instance.activeEnemies.Remove(e);
         e.KillEnemy();
+
         score += e.enemyWord.Length;
         scoreText.text = "Score: " + score;
         inputField.text = "";
-        EnemySpawner.instance.SpawnEnemy();
-
-        return;
-        inputField.text = "";
     }
+
 }

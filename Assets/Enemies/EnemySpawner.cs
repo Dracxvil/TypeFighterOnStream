@@ -17,8 +17,8 @@ public class EnemySpawner : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        for (int i = 0; i < maxEnemies; i++)
-            SpawnEnemy();
+        //for (int i = 0; i < maxEnemies; i++)
+        //    SpawnEnemy();
     }
 
     // Update is called once per frame
@@ -41,12 +41,20 @@ public class EnemySpawner : MonoBehaviour
         GameManager.instance.activeEnemies.Add(enemy);
     }
 
-    //public void SpawnEnemyWithWord(string word, string user)
-    //{
-    //    Vector2 pos = new Vector2(Random.Range(5.5f, 8.5f), Random.Range(-4.5f, 4.5f));
-    //    var enemy = Instantiate(enemyPrefab, pos, Quaternion.identity);
-    //    enemy.GetComponent<Enemy>().SetEnemy(word, user);
-    //}
+    public void SpawnEnemyWithWord(string word, string user)
+    {
+        if (GameManager.instance.activeEnemies.Count >= maxEnemies)
+            return;
+
+        Vector2 spawnPos = GetValidSpawnPosition();
+
+        var spawnedObject = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+        var enemy = spawnedObject.GetComponent<Enemy>();
+
+        enemy.SetEnemy(word, user);
+        GameManager.instance.activeEnemies.Add(enemy);
+    }
+
 
 
     Vector2 GetValidSpawnPosition()
