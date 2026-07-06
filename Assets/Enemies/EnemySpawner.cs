@@ -5,9 +5,15 @@ public class EnemySpawner : MonoBehaviour
     public static EnemySpawner instance;
     public GameObject enemyPrefab;
     public string[] testWords;
+
+    [Header("Spawning")]
     public int maxEnemies = 5;
 
-
+    [Header("Lane Settings")]
+    public Transform[] lanes;
+    public float spawnX = 11f;
+    public float laneSpawnSpacing = 2f;
+    
 
     private void Awake()
     {
@@ -31,7 +37,9 @@ public class EnemySpawner : MonoBehaviour
     {
         string randomWord = testWords[Random.Range(0, testWords.Length)];
 
-        Vector2 spawnPos = GetValidSpawnPosition();
+        Vector2 spawnPos = GetSpawnPosition();
+        if (spawnPos == Vector2.zero)
+            return;
 
         //Vector2 pos = new Vector2(Random.Range(5.5f, 8.5f), Random.Range(-4.5f, 4.5f));
 
@@ -46,7 +54,9 @@ public class EnemySpawner : MonoBehaviour
         if (GameManager.instance.activeEnemies.Count >= maxEnemies)
             return;
 
-        Vector2 spawnPos = GetValidSpawnPosition();
+        Vector2 spawnPos = GetSpawnPosition();
+        if (spawnPos == Vector2.zero)
+            return;
 
         var spawnedObject = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
         var enemy = spawnedObject.GetComponent<Enemy>();
@@ -57,27 +67,43 @@ public class EnemySpawner : MonoBehaviour
 
 
 
-    Vector2 GetValidSpawnPosition()
+    Vector2 GetSpawnPosition()
     {
-        int maxAttempts = 20;
-        float minDistance = 5f;
-
-        for(int i=0; i < maxAttempts; i++)
+        if (lanes.Length == 0)
         {
-            Vector2 pos = new Vector2(Random.Range(5.5f, 8.5f), Random.Range(-4.5f, 4.5f));
-            bool isValid = true;
+            Debug.LogError("No lanes assigned");
+            return Vector2.zero;
+        }
 
-            foreach(var other in FindObjectsOfType<Enemy>())
+        //Randomize the lane order so we don't always start at lane 0
+        int startIndex=Random.Range(0,lanes.Length);
+
+        for(int i = 0; i < lanes.Length; i++)
+        {
+            int laneIndex=(startIndex+i)%lanes.Length;
+            float laneY = lanes[laneIndex].position.y;
+
+            bool blocked = false;
+
+            foreach(Enemy enemy in GameManager.instance.activeEnemies)
             {
-                if (Vector2.Distance(pos, other.transform.position) < minDistance)
+                if (Mathf.Abs(enemy.transform.position.y - laneY) < 0.1f)
                 {
-                    isValid = false;
-                    break;
+                    if (Mathf.Abs(enemy.transform.position.x - spawnX) < laneSpawnSpacing)
+                    {
+                        blocked = true;
+                        break;
+                    }
                 }
             }
-            if (isValid) 
-                return pos;
+
+            if (!blocked)
+            {
+                return new Vector2(spawnX, laneY);
+            }
         }
-        return new Vector2(Random.Range(5.5f, 8.5f), Random.Range(-4.5f, 4.5f));
+
+        //No free lane near the spawn point
+        return Vector2.zero;
     }
 }
