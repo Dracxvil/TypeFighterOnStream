@@ -585,7 +585,7 @@ MonoBehaviour:
   enemyName: 
   nameText: {fileID: 1111381992237364315}
   spriteRenderer: {fileID: 482970755258890746}
-  moveSpeed: 1
+  moveSpeed: 0.3
   baseScale: 1
   scalePerCharacter: 0.07
   nameTextOffset: 1.2

@@ -18,10 +18,10 @@ public class TwitchConnect : MonoBehaviour
     const string URL = "irc.chat.twitch.tv";
     const int PORT = 6667;
 
-    string User = "TypeFighterOnStream";
+    string User;
     //Get OAuth from https://twitchapps.com.tmi
-    string OAuth = "oauth:m9tlwwky9u1zjv3rofihocqupvrwth";
-    string Channel = "dracxvil";
+    string OAuth;
+    string Channel;
 
     float PingCounter = 0;
 
@@ -37,8 +37,29 @@ public class TwitchConnect : MonoBehaviour
         Writer.Flush();
     }
 
+
+    void LoadConfig()
+    {
+        string path = Path.Combine(Application.dataPath, "Managers", "TwitchConfig.json");
+
+        if (!File.Exists(path))
+        {
+            Debug.LogError($"Config file not found: \n{path}");
+            return;
+        }
+
+        string json=File.ReadAllText(path);
+
+        TwitchConfig config=JsonUtility.FromJson<TwitchConfig>(json);
+
+        User = config.username;
+        OAuth=config.oauth;
+        Channel = config.channel;
+    }
+
     private void Awake()
     {
+        LoadConfig();
         StartConnectionLoop();
     }
     // Update is called once per frame
