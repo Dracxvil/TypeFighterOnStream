@@ -25,6 +25,8 @@ public class TwitchConnect : MonoBehaviour
 
     float PingCounter = 0;
 
+    public bool GameplayActive { get; private set; } = false;
+
     
 
     private void ConnectToTwitch()
@@ -38,9 +40,7 @@ public class TwitchConnect : MonoBehaviour
         Writer.WriteLine("JOIN #" + Channel.ToLower());
         Writer.Flush();
 
-        Debug.Log("PASS oauth:********");
-        Debug.Log("NICK " + User);
-        Debug.Log("JOIN #" + Channel);
+        
     }
 
 
@@ -95,82 +95,34 @@ public class TwitchConnect : MonoBehaviour
             ConnectToTwitch();
         }
 
-        //if (Twitch.Available > 0)
-        //{
-        //    string message = Reader.ReadLine();
-        //    //Debug.Log(message);
-
-        //    if (message.Contains("PRIVMSG"))
-        //    {
-        //        string[] split = message.Split('!');
-        //        string user = split[0].Substring(1);
-
-        //        int msgIndex = message.IndexOf("PRIVMSG");
-        //        string chatMessage = message.Substring(message.IndexOf(':', msgIndex) + 1);
-
-        //        Debug.Log($"{user}: {chatMessage}");
-
-
-
-        //        // COMMAND: !spawn <word>
-        //        //if (chatMessage.StartsWith("!spawn"))
-        //        //{
-        //        //    string[] parts = chatMessage.Split(' ');
-
-        //        //    if (parts.Length > 1)
-        //        //    {
-        //        //        string spawnWord = parts[1]; // Only the first word after !spawn
-        //        //        EnemySpawner.instance.SpawnEnemyWithWord(spawnWord, user);
-        //        //        Debug.Log($"Spawning enemy with word: {spawnWord} by {user}");
-        //        //    }
-        //        //}
-
-
-
-        //        //Any Chat message spawns an enemy using the FIRST word
-        //        // CHAT SPAWNS ENEMY: Only first word, and only letters A-Z
-        //        if (!string.IsNullOrWhiteSpace(chatMessage))
-        //        {
-        //            string[] parts = chatMessage.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-        //            if (parts.Length >= 1)
-        //            {
-        //                string firstWord = parts[0];
-
-        //                // Allow only alphabetic words (case-insensitive)
-        //                if (Regex.IsMatch(firstWord, "^[a-zA-Z]+$"))
-        //                {
-        //                    EnemySpawner.instance.SpawnEnemyWithWord(firstWord, user);
-        //                    Debug.Log($"Spawned valid enemy -> Word: {firstWord}, User: {user}");
-        //                }
-        //                else
-        //                {
-        //                    Debug.Log($"Invalid word ignored: {firstWord}");
-
-        //                    // Reply back to Twitch chat
-        //                    SendChatMessage($"@{user} Only alphabet characters A-Z allowed!");
-        //                }
-        //            }
-        //        }
-
-        //    }
-
-        //    if (message.StartsWith("PING"))
-        //    {
-        //        Writer.WriteLine("PONG: irc.chat.twitch.tv");
-        //        Writer.Flush();
-        //    }
-            
-        //}
-
-        while(chatQueue.TryDequeue(out var entry))
+        if (GameplayActive)
         {
-            HandleChatMessage(entry.user, entry.message);
+            while(chatQueue.TryDequeue(out var entry))
+            {
+                HandleChatMessage(entry.user,entry.message);
+            }
         }
     }
 
+    public void StartGameplay()
+    {
+        GameplayActive = true;
+    }
+
+    public void StopGameplay()
+    {
+        GameplayActive=false;
+
+        while(chatQueue.TryDequeue(out _))
+        {
+            //Clear queued chat messages
+        }
+    }
+
+
     void ProcessMessage(string message)
     {
-        Debug.Log(message);
+        
 
         if (message.StartsWith("PING"))
         {
@@ -239,7 +191,7 @@ public class TwitchConnect : MonoBehaviour
                 break; // exit loop -> trigger reconnection
             }
 
-            Thread.Sleep(10);
+            Thread.Sleep(5);
         }
 
         throw new System.Exception("Disconnected!");
