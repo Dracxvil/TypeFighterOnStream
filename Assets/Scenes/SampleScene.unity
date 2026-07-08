@@ -578,6 +578,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1231602657}
+        m_TargetAssemblyTypeName: TwitchConnect, Assembly-CSharp
+        m_MethodName: StartGameplay
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &251986456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2560,12 +2572,12 @@ GameObject:
   - component: {fileID: 1231602656}
   - component: {fileID: 1231602657}
   m_Layer: 0
-  m_Name: TwitchConnectionManager
+  m_Name: TwitchConnect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1231602656
 Transform:
   m_ObjectHideFlags: 0
