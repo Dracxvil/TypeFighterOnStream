@@ -1,9 +1,9 @@
+using System.Collections;
 using System.Collections.Concurrent;
-using System.IO;
 using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using System.Threading;
 using UnityEngine;
+using System.IO;
 
 
 
@@ -21,9 +21,11 @@ public class TwitchConnect : MonoBehaviour
     string User;
     //Get OAuth from https://twitchapps.com.tmi
     string OAuth;
-    string Channel;
+    string Channel => User;
 
     float PingCounter = 0;
+
+    
 
     private void ConnectToTwitch()
     {
@@ -35,33 +37,41 @@ public class TwitchConnect : MonoBehaviour
         Writer.WriteLine("NICK " + User.ToLower());
         Writer.WriteLine("JOIN #" + Channel.ToLower());
         Writer.Flush();
+
+        Debug.Log("PASS oauth:********");
+        Debug.Log("NICK " + User);
+        Debug.Log("JOIN #" + Channel);
     }
 
 
-    void LoadConfig()
-    {
-        string path = Path.Combine(Application.dataPath, "Managers", "TwitchConfig.json");
-
-        if (!File.Exists(path))
-        {
-            Debug.LogError($"Config file not found: \n{path}");
-            return;
-        }
-
-        string json=File.ReadAllText(path);
-
-        TwitchConfig config=JsonUtility.FromJson<TwitchConfig>(json);
-
-        User = config.username;
-        OAuth=config.oauth;
-        Channel = config.channel;
-    }
+    
 
     private void Awake()
     {
-        LoadConfig();
+        StartCoroutine(InitializeLogin());
+    }
+
+    IEnumerator InitializeLogin()
+    {
+        while (DeviceCodeAuth.Instance == null)
+            yield return null;
+
+        while (string.IsNullOrEmpty(DeviceCodeAuth.Instance.Username))
+            yield return null;
+
+        User=DeviceCodeAuth.Instance.Username;
+
+        OAuth = "oauth:" + PlayerPrefs.GetString("TwitchAccessToken");
+
+        Debug.Log($"Connecting as {User}");
+
         StartConnectionLoop();
     }
+
+
+
+
+
     // Update is called once per frame
     void Update()
     {
@@ -160,6 +170,8 @@ public class TwitchConnect : MonoBehaviour
 
     void ProcessMessage(string message)
     {
+        Debug.Log(message);
+
         if (message.StartsWith("PING"))
         {
             Writer.WriteLine("PONG :tmi.twitch.tv");
