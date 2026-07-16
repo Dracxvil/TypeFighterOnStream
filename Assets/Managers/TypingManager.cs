@@ -19,6 +19,9 @@ public class TypingManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameManager.instance.IsGameRunning)
+            return;
+
         if (Input.GetKeyDown(KeyCode.Return))
         {
             CheckTypedWord();
@@ -46,6 +49,9 @@ public class TypingManager : MonoBehaviour
     }
     void CheckTypedWord()
     {
+        if (!GameManager.instance.IsGameRunning)
+            return;
+
         string typedWord = inputField.text.Trim();
         if (string.IsNullOrEmpty(typedWord))
             return;

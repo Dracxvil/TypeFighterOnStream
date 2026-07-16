@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections.Generic;
+using Unity.Collections;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -13,6 +15,8 @@ public class EnemySpawner : MonoBehaviour
     public Transform[] lanes;
     public float spawnX = 11f;
     public float laneSpawnSpacing = 2f;
+
+    private Queue<(string word, string user)> spawnQueue = new();
     
 
     private void Awake()
@@ -30,31 +34,29 @@ public class EnemySpawner : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
-    }
-
-    public void SpawnEnemy()
-    {
-        string randomWord = testWords[Random.Range(0, testWords.Length)];
-
-        Vector2 spawnPos = GetSpawnPosition();
-        if (spawnPos == Vector2.zero)
+        if (!GameManager.instance.IsGameRunning)
             return;
 
-        //Vector2 pos = new Vector2(Random.Range(5.5f, 8.5f), Random.Range(-4.5f, 4.5f));
+        if (spawnQueue.Count == 0)
+            return;
 
-        var spawnedObject = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
-        var enemy = spawnedObject.GetComponent<Enemy>();
-        enemy.SetEnemy(randomWord, "AI");
-        GameManager.instance.activeEnemies.Add(enemy);
-    }
-
-    public void SpawnEnemyWithWord(string word, string user)
-    {
         if (GameManager.instance.activeEnemies.Count >= maxEnemies)
             return;
 
+        var nextEnemy = spawnQueue.Peek();
+
+        TrySpawnEnemy(nextEnemy.word, nextEnemy.user);
+    }
+
+    public void QueueEnemy(string word, string user)
+    {
+        spawnQueue.Enqueue((word, user));
+    }
+
+    void TrySpawnEnemy(string word, string user)
+    {
         Vector2 spawnPos = GetSpawnPosition();
+
         if (spawnPos == Vector2.zero)
             return;
 
@@ -63,7 +65,51 @@ public class EnemySpawner : MonoBehaviour
 
         enemy.SetEnemy(word, user);
         GameManager.instance.activeEnemies.Add(enemy);
+
+        spawnQueue.Dequeue();
     }
+
+    //public void SpawnEnemyWithWord(string word, string user)
+    //{
+    //    if (!GameManager.instance.IsGameRunning)
+    //        return;
+
+    //    if (GameManager.instance.activeEnemies.Count >= maxEnemies)
+    //        return;
+
+    //    Vector2 spawnPos = GetSpawnPosition();
+    //    if (spawnPos == Vector2.zero)
+    //        return;
+
+    //    var spawnedObject = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+    //    var enemy = spawnedObject.GetComponent<Enemy>();
+
+    //    enemy.SetEnemy(word, user);
+
+    //    //Check spacing against enemies already in this line
+    //    const float minGap = 0.2f;
+
+    //    foreach(Enemy other in GameManager.instance.activeEnemies)
+    //    {
+    //        if (other == null)
+    //            continue;
+
+    //        //Only compare enemies in the same lane
+    //        if (Mathf.Abs(other.transform.position.y - enemy.transform.position.y) > 0.1f)
+    //            continue;
+
+    //        float otherRight = other.BodyBounds.max.x;
+    //        float newLeft = enemy.BodyBounds.min.x;
+
+    //        if (newLeft - otherRight < minGap)
+    //        {
+    //            Destroy(spawnedObject);
+    //            return;
+    //        }
+    //    }
+
+    //    GameManager.instance.activeEnemies.Add(enemy);
+    //}
 
 
 
@@ -87,13 +133,20 @@ public class EnemySpawner : MonoBehaviour
 
             foreach(Enemy enemy in GameManager.instance.activeEnemies)
             {
-                if (Mathf.Abs(enemy.transform.position.y - laneY) < 0.1f)
+                if (enemy == null)
+                    continue;
+
+                //Different Lane
+                if (Mathf.Abs(enemy.transform.position.y - laneY) > 0.1f)
+                    continue;
+
+                //Distance from the right edge of the existing enemy
+                float gap = spawnX - enemy.BodyBounds.max.x;
+
+                if (gap < laneSpawnSpacing)
                 {
-                    if (Mathf.Abs(enemy.transform.position.x - spawnX) < laneSpawnSpacing)
-                    {
-                        blocked = true;
-                        break;
-                    }
+                    blocked = true;
+                    break;
                 }
             }
 

@@ -10,6 +10,9 @@ using System.IO;
 
 public class TwitchConnect : MonoBehaviour
 {
+    public static TwitchConnect Instance;
+
+
     TcpClient Twitch;
     StreamReader Reader;
     StreamWriter Writer;
@@ -48,6 +51,8 @@ public class TwitchConnect : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
+
         StartCoroutine(InitializeLogin());
     }
 
@@ -162,16 +167,24 @@ public class TwitchConnect : MonoBehaviour
 
         string firstWord = parts[0];
 
-        // Only allow alphabet characters
-        if (System.Text.RegularExpressions.Regex.IsMatch(firstWord, "^[a-zA-Z]+$"))
+        const int MAX_WORD_LENGTH = 20;
+
+        //Reject anything that isn't letters
+        if (!System.Text.RegularExpressions.Regex.IsMatch(firstWord, "^[a-zA-Z]+$"))
         {
-            EnemySpawner.instance.SpawnEnemyWithWord(firstWord, user);
+            SendChatMessage($"@{user} Only letters are allowed.");
+            return;
         }
-        else
+
+        //Reject overly long words
+        if (firstWord.Length > MAX_WORD_LENGTH)
         {
-            // Optional: Send message back to Twitch about invalid words
-            // SendChatMessage($"@{user} Only alphabet characters A-Z allowed!");
+            SendChatMessage($"@{user} Your word is too long. Maximum length is {MAX_WORD_LENGTH} letters.");
+            return;
         }
+
+        //Word is valid
+        EnemySpawner.instance.QueueEnemy(firstWord, user);
     }
 
     void ListenLoop()

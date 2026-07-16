@@ -5,34 +5,62 @@ public class Enemy : MonoBehaviour
 {
     public string enemyWord;
     public TMP_Text wordText;
-    private RectTransform wordRect;
+    
     public string enemyName;
     public TMP_Text nameText;
-    private RectTransform nameRect;
+    
 
     public SpriteRenderer spriteRenderer; // Assign in Inspector
     public Transform graphics;
 
-    public float moveSpeed = 5f;
+    public float moveSpeed = 10f;
     public int atkdmg => enemyWord.Length;
 
+    public Bounds BodyBounds => spriteRenderer.bounds;
+
     private bool isAlive = true;
+    private bool canMove = true;
 
     [Header("Scaling")]
-    public float baseWidth = 1f;
-    public float baseHeight = 1f;
-    public float widthPerCharacter = 0.07f;
+    public float baseHeight = 4f;
+
+    public float tinyWidth = 2.0f;
+    public float smallWidth = 3.0f;
+    public float mediumWidth = 4.0f;
+    public float largeWidth = 5.0f;
+    public float hugeWidth = 6.0f;
+    
+    
 
     public float nameTextOffset = 1.2f; // Moves name above sprite
 
     void Awake()
     {
-        if (wordRect == null)
-            wordRect = wordText.GetComponent<RectTransform>();
-        if (nameRect == null)
-            nameRect = nameText.GetComponent<RectTransform>();
+        
+    }
 
-        //UpdateVisuals();
+    void Update()
+    {
+        if (!isAlive)
+            return;
+
+        if (!canMove)
+            return;
+
+        transform.Translate(Vector2.left * moveSpeed * Time.deltaTime);
+
+        
+    }
+    
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!isAlive)
+            return;
+
+        if (other.CompareTag("Tower"))
+        {
+            ReachTower();
+        }
     }
 
     public void SetEnemy(string word, string user)
@@ -56,36 +84,22 @@ public class Enemy : MonoBehaviour
 
     void ScaleEnemyToWord()
     {
-        //Enemy width
-        int longestLength = Mathf.Max(enemyWord.Length, enemyName.Length);
+        int longest = Mathf.Max(enemyWord.Length, enemyName.Length);
 
-        //Scale only the graphics
-        float width = baseWidth + (longestLength * widthPerCharacter);
+        float width;
 
-        graphics.localScale = new Vector3(
-            width,
-            baseHeight,
-            1f
-        );
+        if (longest <= 5)
+            width = tinyWidth;
+        else if (longest <= 8)
+            width = smallWidth;
+        else if (longest <= 12)
+            width = mediumWidth;
+        else if (longest <= 16)
+            width = largeWidth;
+        else
+            width = hugeWidth;
 
-        //Make TMP calculate the real width needed
-        wordText.ForceMeshUpdate();
-        nameText.ForceMeshUpdate();
-
-        float textWidth = Mathf.Max(
-            wordText.preferredWidth,
-            nameText.preferredWidth
-        );
-
-        //Padding so text isn't touching the edges
-        float padding = 0f;
-
-        //Resize the text boxes
-        wordRect.sizeDelta = new Vector2(textWidth + padding, wordRect.sizeDelta.y);
-        nameRect.sizeDelta = new Vector2(textWidth + padding, nameRect.sizeDelta.y);
-
-
-
+        spriteRenderer.size = new Vector2(width, baseHeight);
     }
 
     void AdjustNamePosition()
@@ -99,7 +113,7 @@ public class Enemy : MonoBehaviour
         float topY = bounds.max.y;
 
         // A tiny offset above
-        float offset = 0.1f; // You can tweak 0.01f–0.08f
+        float offset = nameTextOffset; // You can tweak 0.01f–0.08f
 
         // Set username directly above the sprite top in WORLD space
         Vector3 newWorldPos = nameText.transform.position;
@@ -113,18 +127,6 @@ public class Enemy : MonoBehaviour
 
     }
 
-
-
-    void Update()
-    {
-        if (!isAlive) return;
-
-        transform.Translate(Vector2.left * moveSpeed * Time.deltaTime);
-
-        if (transform.position.x <= -5)
-            ReachTower();
-    }
-
     public void KillEnemy()
     {
         if (!isAlive) return;
@@ -132,6 +134,11 @@ public class Enemy : MonoBehaviour
 
         GameManager.instance.activeEnemies.Remove(this);
         Destroy(gameObject);
+    }
+
+    public void StopEnemy()
+    {
+        canMove = false;
     }
 
     void ReachTower()
