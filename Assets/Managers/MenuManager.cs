@@ -11,6 +11,7 @@ public class MenuManager: MonoBehaviour
 
     [Header("Buttons")]
     public GameObject loginButton;
+    public TMP_Text loginButtonText;
     public GameObject playButton;
     public GameObject settingsButton;
     public GameObject quitButton;
@@ -35,6 +36,11 @@ public class MenuManager: MonoBehaviour
 
         connectionStatus.text = "Not Connected";
         connectionStatus.color = Color.red;
+
+        loginButtonText = loginButton.GetComponentInChildren<TMP_Text>();
+        loginButtonText.text = "Login";
+
+        playButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
     }
 
     public void PlayGame()
@@ -47,7 +53,15 @@ public class MenuManager: MonoBehaviour
 
     public void LoginToTwitch()
     {
-        TwitchManager.Instance.Login();
+        if (string.IsNullOrEmpty(DeviceCodeAuth.Instance.Username))
+        {
+            TwitchManager.Instance.Login();
+        }
+
+        else
+        {
+            Logout();
+        }
     }
 
     public void OpenSettings()
@@ -67,5 +81,28 @@ public class MenuManager: MonoBehaviour
     public void SetConnectionStatus(string username)
     {
         connectionStatus.text = $"Connected as {username}";
+        connectionStatus.color = Color.green;
+
+        playButton.GetComponent<UnityEngine.UI.Button>().interactable = true;
+
+        loginButtonText.text = "Logout";
     }
+
+    public void Logout()
+    {
+        if (TwitchConnect.Instance != null)
+        {
+            TwitchConnect.Instance.Disconnect();
+        }
+        
+        DeviceCodeAuth.Instance.Logout();
+
+        connectionStatus.text = "Not Connected";
+        connectionStatus.color = Color.red;
+
+        playButton.GetComponent<UnityEngine.UI.Button>().interactable = false;
+
+        loginButtonText.text = "Login";
+    }
+
 }

@@ -175,6 +175,12 @@ public class GameManager : MonoBehaviour
         TowerHP = startingTowerHP;
         UpdateUI();
 
+        TypingManager typingManager = FindFirstObjectByType<TypingManager>();
+        if(typingManager != null)
+        {
+            typingManager.ResetScore();
+        }
+
         //Resume Twitch chat
         if(TwitchConnect.Instance != null)
         {

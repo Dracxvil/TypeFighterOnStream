@@ -204,6 +204,26 @@ public class DeviceCodeAuth: MonoBehaviour
         Username = response.login;
 
         Debug.Log("Logged in as " + Username);
+
+        if (MenuManager.Instance != null)
+        {
+            MenuManager.Instance.SetConnectionStatus(Username);
+        }
+    }
+
+    public void Logout()
+    {
+        PlayerPrefs.DeleteKey("TwitchAccessToken");
+        PlayerPrefs.DeleteKey("TwitchRefreshToken");
+
+        PlayerPrefs.Save();
+
+        Username = "";
+
+        accessToken = "";
+        refreshToken = "";
+
+        Debug.Log("Logged out");
     }
 
 }

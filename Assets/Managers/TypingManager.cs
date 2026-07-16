@@ -73,4 +73,10 @@ public class TypingManager : MonoBehaviour
         inputField.text = "";
     }
 
+    public void ResetScore()
+    {
+        score = 0;
+        scoreText.text = "Score:" + score;
+    }
+
 }

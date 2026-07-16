@@ -30,6 +30,8 @@ public class TwitchConnect : MonoBehaviour
 
     public bool GameplayActive { get; private set; } = false;
 
+    private bool keepRunning = true;
+
     
 
     private void ConnectToTwitch()
@@ -214,7 +216,7 @@ public class TwitchConnect : MonoBehaviour
     {
         new System.Threading.Thread(() =>
         {
-            while (true)
+            while (keepRunning)
             {
                 try
                 {
@@ -230,6 +232,45 @@ public class TwitchConnect : MonoBehaviour
             }
         })
         { IsBackground = true }.Start();
+    }
+
+    public void Disconnect()
+    {
+        keepRunning = false;
+
+        GameplayActive = false;
+
+        try
+        {
+            Writer?.Close();
+        }
+        catch { }
+
+        try
+        {
+            Reader?.Close();
+        }
+        catch { }
+
+        try
+        {
+            Twitch?.Close();
+        }
+        catch { }
+
+        Writer = null;
+        Reader = null;
+        Twitch = null;
+
+        User = "";
+        OAuth = "";
+
+        while(chatQueue.TryDequeue(out _))
+        {
+
+        }
+
+        Debug.Log("Disconnected from Twitch.");
     }
 
 }
