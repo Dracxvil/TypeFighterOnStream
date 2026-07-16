@@ -20,6 +20,10 @@ public class GameManager : MonoBehaviour
 
     [Header("UI")]
     public GameObject gameOverPanel;
+    public GameObject pausePanel;
+    
+
+    public bool IsPaused {  get; private set; }
 
     
     private void Awake()
@@ -39,6 +43,11 @@ public class GameManager : MonoBehaviour
         if(gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
+        }
+
+        if(pausePanel != null)
+        {
+            pausePanel.SetActive(false);
         }
 
         UpdateUI();
@@ -97,8 +106,61 @@ public class GameManager : MonoBehaviour
             gameOverPanel.SetActive(true);
     }
 
+    public void PauseGame()
+    {
+        if (!IsGameRunning)
+            return;
+
+        if (IsPaused)
+            return;
+
+        IsPaused = true;
+
+        Time.timeScale = 0f;
+
+        if(pausePanel!=null)
+            pausePanel.SetActive(true);
+
+        if (FindFirstObjectByType<TypingManager>() != null)
+        {
+            FindFirstObjectByType<TypingManager>().inputField.interactable=false;
+        }
+
+        if(TwitchConnect.Instance != null)
+        {
+            TwitchConnect.Instance.StopGameplay();
+        }
+    }
+
+    public void ResumeGame()
+    {
+        if (!IsPaused)
+            return;
+
+        IsPaused = false;
+
+        Time.timeScale = 1f;
+
+        if (pausePanel!=null)
+            pausePanel.SetActive(false);
+
+        if(FindFirstObjectByType<TypingManager>() != null)
+        {
+            FindFirstObjectByType<TypingManager>().inputField.interactable = true;
+            FindFirstObjectByType<TypingManager>().inputField.ActivateInputField();
+        }
+
+        if(TwitchConnect.Instance!= null)
+        {
+            TwitchConnect.Instance.StartGameplay();
+        }
+    }
+
     public void ResetGame()
     {
+        Time.timeScale = 1f;
+        IsPaused = false;
+
         //Resume Gameplay
         IsGameRunning = true;
 
@@ -122,7 +184,7 @@ public class GameManager : MonoBehaviour
         //Destroy all remaining enemies
         for(int i = activeEnemies.Count - 1; i >= 0; i--)
         {
-            if (activeEnemies[1] != null)
+            if (activeEnemies[i] != null)
                 Destroy(activeEnemies[i].gameObject);
         }
 
@@ -131,6 +193,9 @@ public class GameManager : MonoBehaviour
         //Hide Game Over UI
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
+
+        if(pausePanel!=null)
+            pausePanel.SetActive(false);
 
         Debug.Log("=====GAME RESET=====");
     }
@@ -142,6 +207,9 @@ public class GameManager : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
+        Time.timeScale = 1f;
+        IsPaused = false;
+
         IsGameRunning = false;
 
         if (TwitchConnect.Instance != null)
@@ -149,6 +217,9 @@ public class GameManager : MonoBehaviour
 
         if(gameOverPanel!=null)
             gameOverPanel.SetActive(false);
+
+        if (pausePanel != null)
+            pausePanel.SetActive(false);
 
         //We'll show the Main Menu in the next feature.
     }

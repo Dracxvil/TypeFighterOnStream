@@ -619,13 +619,13 @@ MonoBehaviour:
   nameText: {fileID: 1111381992237364315}
   spriteRenderer: {fileID: 482970755258890746}
   graphics: {fileID: 3638308663449360279}
-  moveSpeed: 5
+  moveSpeed: 3
   baseHeight: 1
   tinyWidth: 1
-  smallWidth: 2
-  mediumWidth: 3
-  largeWidth: 4
-  hugeWidth: 5
+  smallWidth: 1.5
+  mediumWidth: 2
+  largeWidth: 2.5
+  hugeWidth: 3
   nameTextOffset: 0.1
 --- !u!50 &527959379314892166
 Rigidbody2D:
